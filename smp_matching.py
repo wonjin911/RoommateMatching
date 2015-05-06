@@ -13,10 +13,10 @@ class Person():
     clean_flag = 0
 
     ''' importances of each item '''
-    imp_getup = 0
-    imp_sleep = 0
-    imp_smoke = 0
-    imp_clean = 0
+    imp_getup = 0.0
+    imp_sleep = 0.0
+    imp_smoke = 0.0
+    imp_clean = 0.0
 
     ''' score list of other Person '''
     score_dic = {}
@@ -54,8 +54,90 @@ def insert_person_information(p, getup_time, sleep_time, smoke_flag, clean_flag,
     p.set_imp_clean = imp_clean
 
 
-def score_computate(path):
-    pass
+def score_compute_all(person_dic, person_num):
+    
+    for i in range(1, person_num):
+        for j in range(i, person_num):
+            score = score_computate(person_dic[i], person_dic[j])
+            person_dic[i].score_dic[j] = score
+            person_dic[j].score_dic[i] = score
+
+
+def score_computate(p1, p2):
+
+    m_score_1 = (score_getup(p1, p2) * p1.imp_getup) + (score_sleep(p1, p2) * p1.imp_sleep) + (score_smoke(p1, p2) * p1.imp_smoke) + (score_clean(p1, p2) * p1.imp_clean)
+    m_score_2 = (score_getup(p2, p1) * p2.imp_getup) + (score_sleep(p2, p1) * p2.imp_sleep) + (score_smoke(p2, p1) * p2.imp_smoke) + (score_clean(p2, p1) * p2.imp_smoke)
+
+    m_score = m_score_1 * m_score_2
+
+    return m_score
+
+def score_getup(p1, p2):
+    
+    score = 0
+
+    if (p1.getup_time == 10):
+        if (p2.getup_time == 10):
+            score = 30
+        else:
+            score = 10
+    else:
+        if (p2.getup_time == 10):
+            score = 0
+        elif (p1.getup_time == p2.getup_time):
+            score = 100
+        elif (abs(p1.getup_time - p2.getup_time) == 1):
+            score = 50
+        elif (abs(p1.getup_time - p2.getup_time) in (2,3)):
+            score = 30
+        else:
+            score = 10
+
+    return score
+
+def score_sleep(p1, p2):
+    
+    score = 0
+
+    if (p1.getup_time == 10):
+        if (p2.getup_time == 10):
+            score = 30
+        else:
+            score = 10
+    else:
+        if (p2.getup_time == 10):
+            score = 0
+        elif (p1.getup_time == p2.getup_time):
+            score = 100
+        elif (abs(p1.getup_time - p2.getup_time) == 1):
+            score = 50
+        elif (abs(p1.getup_time - p2.getup_time) in (2,3)):
+            score = 30
+        else:
+            score = 10
+
+    return score
+
+
+def score_smoke(p1, p2):
+
+    score = 0
+    if(p1.smoke_flag == p2.smoke_flag):
+        score = 100
+    else:
+        score = 0
+    return score
+
+def score_clean(p1, p2):
+    
+    score = 0
+    if(p1.clean_flag == p2.clean_flag):
+        score = 100
+    elif(abs(p1.clean_flag - p2.clean_flag) = 1):
+        score = 50
+    else:
+        score = 0
+    return score
 
 def smp_matching():
     pass
