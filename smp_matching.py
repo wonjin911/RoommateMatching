@@ -1,5 +1,5 @@
 import os, sys
-
+import matcher
 
 class Person():
     
@@ -162,11 +162,30 @@ def main():
 
     score_compute_all(person_dic, 6)
     
+    score_dic = {}
+
     for n in person_dic:
         print n
         print(person_dic[n].score_dic)
+        score_dic[n] = person_dic[n].score_dic
+
+    '''
+    0
+    {1: 3500.0, 2: 5700.0, 3: 300.0, 4: 7200.0, 5: 5700.0}
+    1
+    {0: 3500.0, 2: 5829.0, 3: 1500.0, 4: 200.0, 5: 5829.0}
+    2
+    {0: 5700.0, 1: 5829.0, 3: 187.0, 4: 1125.0, 5: 14000.0}
+    3
+    {0: 300.0, 1: 1500.0, 2: 187.0, 4: 1600.0, 5: 1517.0}
+    4
+    {0: 7200.0, 1: 200.0, 2: 1125.0, 3: 1600.0, 5: 675.0}
+    5
+    {0: 5700.0, 1: 5829.0, 2: 14000.0, 3: 1517.0, 4: 675.0}
+    '''
 
     ''' Step2. SMP Matching '''
+    matcher.get_roommates(score_dic)
 
 if __name__ == '__main__':
     main()
