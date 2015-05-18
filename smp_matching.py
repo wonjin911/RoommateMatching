@@ -147,9 +147,36 @@ def score_clean(p1, p2):
         score = 0
     return score
 
-def smp_matching():
-    pass
+def smp_matching(person_dic):
+    
+    score_sum = 0
+    result_dic = {}
 
+    for n in person_dic:
+        if n not in result_dic.values():
+            target_n = max(person_dic[n].score_dic.iterkeys(), key=lambda k: person_dic[n].score_dic[k])
+            result_dic[n] = target_n
+            score_sum = score_sum + person_dic[n].score_dic[target_n]
+
+            for p in person_dic:
+                if n in person_dic[p].score_dic.keys():
+                    del person_dic[p].score_dic[n]
+                if target_n in person_dic[p].score_dic.keys():
+                    del person_dic[p].score_dic[target_n]
+
+    return score_sum, result_dic
+
+
+def random_matching(person_dic):
+
+    score_sum = 0
+    result_dic = {}
+    for n in person_dic:
+        if n%2 == 1:
+            score_sum = score_sum + person_dic[n].score_dic[n+1]
+            result_dic[n] = n+1
+
+    return score_sum, result_dic
 
 def insert_data(path):
 
@@ -172,7 +199,6 @@ def main():
     ''' Step0. get data from csv '''
     person_dic = insert_data("male.csv")
     for pid, p in person_dic.iteritems():
-        print p
         print p.pid, p.sleep_time, p.getup_time, p.smoke_flag, p.rm_smoke_flag, p.clean_flag
         print p.imp_sleep, p.imp_getup, p.imp_smoke, p.imp_clean
 
@@ -194,10 +220,20 @@ def main():
 
     score_compute_all(person_dic, 6)
     '''
+
     for n in person_dic:
         print n
         print(person_dic[n].score_dic)
     ''' Step2. SMP Matching '''
+
+    rd_sum, rd_dic = random_matching(person_dic)
+    print rd_dic
+    print "random sum : %d\n" % rd_sum
+
+    score_sum, result_dic = smp_matching(person_dic)
+    print result_dic
+    print "sum : %d\n" % score_sum
+
 
 if __name__ == '__main__':
     main()
