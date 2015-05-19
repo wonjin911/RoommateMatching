@@ -198,34 +198,11 @@ def main():
     
     ''' Step0. get data from csv '''
     person_dic = insert_data("male.csv")
-    for pid, p in person_dic.iteritems():
-        print p.pid, p.sleep_time, p.getup_time, p.smoke_flag, p.rm_smoke_flag, p.clean_flag
-        print p.imp_sleep, p.imp_getup, p.imp_smoke, p.imp_clean
 
+    ''' Step1. score computating '''
     score_compute_all(person_dic, len(person_dic)+1)
 
-    ''' Step1. Score Computation 
-
-    person_num = 6
-    
-    for i in range(0,person_num):
-        person_dic[i] = Person(i)
-    
-    insert_person_information(person_dic[0], 2,3,0,2,1, 0.3, 0.3, 0.2, 0.2)
-    insert_person_information(person_dic[1], 1,2,0,0,3, 0.2, 0.2, 0.5, 0.1)
-    insert_person_information(person_dic[2], 3,3,0,0,2, 0.2, 0.2, 0.5, 0.1)
-    insert_person_information(person_dic[3], 1,2,1,2,3, 0.1, 0.1, 0.1, 0.7)
-    insert_person_information(person_dic[4], 2,1,1,2,1, 0.1, 0.1, 0.7, 0.1)
-    insert_person_information(person_dic[5], 3,4,0,0,2, 0.2, 0.2, 0.5, 0.1)
-
-    score_compute_all(person_dic, 6)
-    '''
-
-    for n in person_dic:
-        print n
-        print(person_dic[n].score_dic)
     ''' Step2. SMP Matching '''
-
     rd_sum, rd_dic = random_matching(person_dic)
     print rd_dic
     print "random sum : %d\n" % rd_sum
