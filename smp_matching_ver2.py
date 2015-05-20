@@ -84,9 +84,9 @@ def score_compute(p1, p2, mult=False):
     m_score_2 = (score_getup(p2, p1) * p2.imp_getup) + (score_sleep(p2, p1) * p2.imp_sleep) + (score_smoke(p2, p1) * p2.imp_smoke) + (score_clean(p2, p1) * p2.imp_smoke)
 
     if mult:
-      m_score = m_score_1 * m_score_2
+        m_score = m_score_1 * m_score_2
     else:
-      m_score = m_score_1 + m_score_2
+        m_score = m_score_1 + m_score_2
 
     return m_score
 
@@ -232,32 +232,45 @@ def insert_data(path):
 
     return person_dic
 
-def main():
+def main(filename):
  
     score_sum_list = []
     ''' Step0. get data from csv '''
-    person_dic = insert_data("male.csv")
+    person_dic = insert_data(filename)
 
     ''' Step1. score computating '''
     score_update_all(person_dic)
 
     ''' Step2. Matching '''
 
+    print "filename: " + filename
+    print ""
+
     ''' Random '''
+    num_rand_test = 1000
     random_results = []
-    for i in range(100):
+    for i in range(num_rand_test):
         rd_sum, rd_dic = random_matching(person_dic)
         random_results.append(rd_sum)
 
-    print "random max : %d\n" % max(random_results)
-    print "random min : %d\n" % min(random_results)
-    print "random avg : %f\n" % numpy.mean(random_results)
-    print "random std : %f\n" % numpy.std(random_results)
+    print "random test : %d times" % len(random_results)
+    print "random max : %d" % max(random_results)
+    print "random min : %d" % min(random_results)
+    rand_avg = numpy.mean(random_results)
+    print "random avg : %f" % rand_avg
+    print "random std : %f" % numpy.std(random_results)
+    print ""
 
     ''' SMP '''
     score_sum, result_dic = smp_matching(person_dic)
     print result_dic
     print "sum : %d\n" % score_sum
+
+    print "%.2f times improved" % (score_sum / rand_avg)
+
 if __name__ == '__main__':
-    main()
+    filename = "male.csv"
+    if len(sys.argv) >= 2:
+        filename = sys.argv[1]
+    main(filename)
 
