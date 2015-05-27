@@ -93,11 +93,6 @@ def score_compute(p1, p2, mult=False):
     m_score_1 = (score_getup(p1, p2) * p1.imp_getup) + (score_sleep(p1, p2) * p1.imp_sleep) + (score_smoke(p1, p2) * p1.imp_smoke) + (score_clean(p1, p2) * p1.imp_clean)
     m_score_2 = (score_getup(p2, p1) * p2.imp_getup) + (score_sleep(p2, p1) * p2.imp_sleep) + (score_smoke(p2, p1) * p2.imp_smoke) + (score_clean(p2, p1) * p2.imp_clean)
 
-    if m_score_1 > 100:
-        m_score_1 = 100
-    if m_score_2 > 100:
-        m_score_2 = 100
-
     if mult:
         m_score = math.sqrt(m_score_1 * m_score_2)
     else:
@@ -212,24 +207,39 @@ def smp_matching(person_dic_arg):
     return score_sum, result_dic
 
 
-def random_matching(person_dic):
+def random_matching(person_dic, pre_list, post_list):
 
     score_sum = 0
     result_dic = {}
-    choice_list = []
-    for n in person_dic:
-        choice_list.append(n)
+    
+    cnt = len(pre_list) + len(post_list)
 
-    while(choice_list):
-        n = random.choice(choice_list)
-        choice_list.remove(n)
-        target_n = random.choice(choice_list)
-        score_sum += score_compute(person_dic[n], person_dic[target_n])
+    while(len(pre_list) >= 2):
+        n = random.choice(pre_list)
+        pre_list.remove(n)
+        target_n = random.choice(pre_list)
+        score_sum += person_dic[n].score_dic2[target_n] + person_dic[target_n].score_dic2[n]
         result_dic[target_n] = n
         result_dic[n] = target_n
-        choice_list.remove(target_n)
+        pre_list.remove(target_n)
 
-    return score_sum, result_dic
+    while(len(post_list) >= 2):
+        n = random.choice(post_list)
+        post_list.remove(n)
+        target_n = random.choice(post_list)
+        score_sum += person_dic[n].score_dic2[target_n] + person_dic[target_n].score_dic2[n]
+        result_dic[target_n] = n
+        result_dic[n] = target_n
+        post_list.remove(target_n)
+
+    if(len(pre_list)==1 and len(post_list)==1):
+        n = random.choice(pre_list)
+        target_n = random.choice(post_list)
+        score_sum += person_dic[n].score_dic2[target_n] + person_dic[target_n].score_dic2[n]
+        result_dic[target_n] = n
+        result_dic[n] = target_n
+
+    return score_sum/cnt, result_dic
 
 def insert_data(path):
 
@@ -247,6 +257,19 @@ def insert_data(path):
 
     return person_dic
 
+def pre_and_post(person_dic):
+
+    pre_list = []
+    post_list = []
+
+    for p in person_dic:
+        if person_dic[p].sleep_time in (1,2,3,4,5):
+            pre_list.append(p)
+        else:
+            post_list.append(p)
+
+    return pre_list, post_list
+
 def main(filename):
  
     score_sum_list = []
@@ -257,14 +280,23 @@ def main(filename):
     score_update_all(person_dic)
 
     ''' Step2. Matching '''
-    ''' SMP '''
-    score_sum, result_dic = smp_matching(person_dic)
-    score_avg = (float)(score_sum / len(person_dic))
-    #print result_dic
-    print "sum : %f\n" % score_avg
 
-    for r in result_dic:
-        print str(r) + '\t' + str(result_dic[r]) + '\t' + str(score_compute(person_dic[r], person_dic[result_dic[r]], True))
+    ''' Random '''
+    num_rand_test = 1000
+    random_results = []
+    for i in range(num_rand_test):
+        pre_list, post_list = pre_and_post(person_dic)
+        rd_sum, rd_dic = random_matching(person_dic, pre_list, post_list)
+        print rd_sum
+        random_results.append(rd_sum)
+
+    print "random test : %d times" % len(random_results)
+    print "random max : %d" % max(random_results)
+    print "random min : %d" % min(random_results)
+    rand_avg = numpy.mean(random_results)
+    print "random avg : %f" % rand_avg
+    print "random std : %f" % numpy.std(random_results)
+    print ""
 
 if __name__ == '__main__':
     filename = "male.csv"

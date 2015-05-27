@@ -257,14 +257,48 @@ def main(filename):
     score_update_all(person_dic)
 
     ''' Step2. Matching '''
+
+    print "filename: " + filename
+    print ""
+
+    ''' Random 
+    num_rand_test = 1000
+    random_results = []
+    for i in range(num_rand_test):
+        rd_sum, rd_dic = random_matching(person_dic)
+        random_results.append(rd_sum)
+
+    print "random test : %d times" % len(random_results)
+    print "random max : %d" % max(random_results)
+    print "random min : %d" % min(random_results)
+    rand_avg = numpy.mean(random_results)
+    print "random avg : %f" % rand_avg
+    print "random std : %f" % numpy.std(random_results)
+    print ""
+    '''
     ''' SMP '''
     score_sum, result_dic = smp_matching(person_dic)
     score_avg = (float)(score_sum / len(person_dic))
     #print result_dic
     print "sum : %f\n" % score_avg
 
-    for r in result_dic:
-        print str(r) + '\t' + str(result_dic[r]) + '\t' + str(score_compute(person_dic[r], person_dic[result_dic[r]], True))
+    '''
+    for p in person_dic:
+        if p in result_dic.keys():
+            print p, result_dic[p], person_dic[p].score_dic2[result_dic[p]]
+    '''
+
+    result = ""
+    for p in range(len(person_dic)):
+        for q in range(len(person_dic)):
+            if p == q:
+                result += "-\t"
+            else:
+                result += str(person_dic[p+1].score_dic2[q+1]) + "\t"
+        result += "\n"
+      
+    print result
+    #print "%.2f times improved" % (score_sum / rand_avg)
 
 if __name__ == '__main__':
     filename = "male.csv"
