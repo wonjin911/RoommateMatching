@@ -1,6 +1,7 @@
 import os, sys
 import operator
 import random 
+import numpy
 
 class Person():
     
@@ -63,30 +64,29 @@ def insert_person_information(p, sleep_time, getup_time, smoke_flag, rm_smoke_fl
     p.set_imp_clean(round(imp_clean / imp_sum,2))
 
 
-def score_compute_all(person_dic, person_num):
+def score_update_all(person_dic):
     
     score_sum_dic = {}
+    person_num = len(person_dic)
 
-    for i in range(1, person_num):
-        for j in range(i+1, person_num):
-            score = score_compute(person_dic[i], person_dic[j])
+    for i in range(1, person_num + 1):
+        for j in range(i+1, person_num + 1):
+            score = score_compute(person_dic[i], person_dic[j], True)
             person_dic[i].score_dic_update(j, score)
             person_dic[j].score_dic_update(i, score)
 
-    for i in range(1, person_num):
-        for value in person_dic[i].score_dic.values():
-            person_dic[i].score_sum += value;
-        score_sum_dic[i] = person_dic[i].score_sum
+    return
+    #return sorted(score_sum_dic.items(), key=operator.itemgetter(1), reverse=True)
 
-    # sort score_sum_dic
-    return sorted(score_sum_dic.items(), key=operator.itemgetter(1), reverse=True)
-
-def score_compute(p1, p2):
+def score_compute(p1, p2, mult=False):
 
     m_score_1 = (score_getup(p1, p2) * p1.imp_getup) + (score_sleep(p1, p2) * p1.imp_sleep) + (score_smoke(p1, p2) * p1.imp_smoke) + (score_clean(p1, p2) * p1.imp_clean)
     m_score_2 = (score_getup(p2, p1) * p2.imp_getup) + (score_sleep(p2, p1) * p2.imp_sleep) + (score_smoke(p2, p1) * p2.imp_smoke) + (score_clean(p2, p1) * p2.imp_smoke)
 
-    m_score = m_score_1 * m_score_2
+    if mult:
+        m_score = m_score_1 * m_score_2
+    else:
+        m_score = m_score_1 + m_score_2
 
     return m_score
 
@@ -159,24 +159,40 @@ def score_clean(p1, p2):
         score = 0
     return score
 
-def smp_matching(person_dic, score_sum_list):
-    
+def sum_score(person_dic, pid):
+    return sum(person_dic[pid].score_dic.values())
+
+def smp_matching(person_dic_arg):
     score_sum = 0
+    person_dic = dict(person_dic_arg)
     result_dic = {}
-    
-    for item in score_sum_list:
-        n = item[0]
 
-        if n not in result_dic.values():
-            target_n = max(person_dic[n].score_dic.iterkeys(), key=lambda k: person_dic[n].score_dic[k])
-            result_dic[n] = target_n
-            score_sum = score_sum + person_dic[n].score_dic[target_n]
+    random_indices = [random.randint(0, len(person_dic) / 2) for _ in range(10)]
 
-            for p in person_dic:
-                if n in person_dic[p].score_dic.keys():
-                    del person_dic[p].score_dic[n]
-                if target_n in person_dic[p].score_dic.keys():
-                    del person_dic[p].score_dic[target_n]
+    i = 0
+    while person_dic:
+        if i in random_indices:
+            #TODO
+            #FIXME
+            n = max(person_dic, key=lambda pid: sum_score(person_dic, pid))
+        else:
+            n = max(person_dic, key=lambda pid: sum_score(person_dic, pid))
+
+        target_n = max(person_dic[n].score_dic.iterkeys(), key=lambda k: person_dic[n].score_dic[k])
+        result_dic[n] = target_n
+        result_dic[target_n] = n
+        score_sum += score_compute(person_dic[n], person_dic[target_n])
+
+        for p in person_dic:
+            if n in person_dic[p].score_dic.keys():
+                del person_dic[p].score_dic[n]
+            if target_n in person_dic[p].score_dic.keys():
+                del person_dic[p].score_dic[target_n]
+
+        del person_dic[n]
+        del person_dic[target_n]
+
+        i += 1
 
     return score_sum, result_dic
 
@@ -193,7 +209,8 @@ def random_matching(person_dic):
         n = random.choice(choice_list)
         choice_list.remove(n)
         target_n = random.choice(choice_list)
-        score_sum = score_sum + person_dic[n].score_dic[target_n]
+        score_sum += score_compute(person_dic[n], person_dic[target_n])
+        result_dic[target_n] = n
         result_dic[n] = target_n
         choice_list.remove(target_n)
 
@@ -215,23 +232,45 @@ def insert_data(path):
 
     return person_dic
 
-def main():
+def main(filename):
  
     score_sum_list = []
     ''' Step0. get data from csv '''
-    person_dic = insert_data("male.csv")
+    person_dic = insert_data(filename)
 
     ''' Step1. score computating '''
-    score_sum_list = score_compute_all(person_dic, len(person_dic)+1)
+    score_update_all(person_dic)
 
-    ''' Step2. SMP Matching '''
+    ''' Step2. Matching '''
 
-    rd_sum, rd_dic = random_matching(person_dic)
-    print "random sum : %d\n" % rd_sum
+    print "filename: " + filename
+    print ""
 
-    score_sum, result_dic = smp_matching(person_dic, score_sum_list)
+    ''' Random '''
+    num_rand_test = 1000
+    random_results = []
+    for i in range(num_rand_test):
+        rd_sum, rd_dic = random_matching(person_dic)
+        random_results.append(rd_sum)
+
+    print "random test : %d times" % len(random_results)
+    print "random max : %d" % max(random_results)
+    print "random min : %d" % min(random_results)
+    rand_avg = numpy.mean(random_results)
+    print "random avg : %f" % rand_avg
+    print "random std : %f" % numpy.std(random_results)
+    print ""
+
+    ''' SMP '''
+    score_sum, result_dic = smp_matching(person_dic)
     print result_dic
     print "sum : %d\n" % score_sum
+
+    print "%.2f times improved" % (score_sum / rand_avg)
+
 if __name__ == '__main__':
-    main()
+    filename = "male.csv"
+    if len(sys.argv) >= 2:
+        filename = sys.argv[1]
+    main(filename)
 
