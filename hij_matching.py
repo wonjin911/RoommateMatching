@@ -4,6 +4,7 @@ import random
 import numpy
 import math
 import copy
+from operator import mul
 
 class Person():
     
@@ -217,6 +218,34 @@ def random_matching(person_dic):
 
     return result_dic
 
+
+def random_matching_sleep(person_dic, pre_list, post_list):
+    result_dic = {}
+    pre_choice = copy.deepcopy(pre_list)
+    post_choice = copy.deepcopy(post_list)
+
+    while(len(pre_choice) >= 2):
+        n = random.choice(pre_choice)
+        pre_choice.remove(n)
+        target_n = random.choice(pre_choice)
+        result_dic[target_n] = n
+        result_dic[n] = target_n
+        pre_choice.remove(target_n)
+
+    while(len(post_choice) >= 2):
+        n = random.choice(post_choice)
+        post_choice.remove(n)
+        target_n = random.choice(post_choice)
+        result_dic[target_n] = n
+        result_dic[n] = target_n
+        post_choice.remove(target_n)
+
+    if len(pre_choice) >= 1 and len(post_choice) >= 1:
+        result_dic[pre_choice[0]] = post_choice[0]
+        result_dic[post_choice[0]] = pre_choice[0]
+
+    return result_dic
+
 def insert_data(path):
     person_dic = {}
 
@@ -243,9 +272,11 @@ def main(filename, op1=0, op2=0, op3=0):
     if op3==0:
         total_func = sum
     else:
-#TODO
-        total_func = sum
+        total_func = lambda l: reduce(mul, l, 1.0)
 
+
+    if op3>0:
+        print total_func([1,2,3,4,5])
 
     ''' Step0. get data from csv '''
     person_dic = insert_data(filename)
@@ -262,10 +293,12 @@ def main(filename, op1=0, op2=0, op3=0):
         result_score[r] = score_compute(person_dic[r], person_dic[result_dic[r]])
     print_result(result_score.values(), 100.0)
 
-    with open("result.csv", "w") as f:
+    outfiledir = "results/"
+    outfilename = "result_%s_%d%d%d.csv" % (filename[:filename.index('.')], op1, op2, op3)
+    with open(outfiledir + outfilename, "w") as f:
         for r in result_dic:
-            f.write("%d\t%d\t" % (r, result_dic[r]))
-            f.write("%f\t%f\n" % (100.0 * result_score[r], 100.0 * result_score[result_dic[r]]))
+            f.write("%d,\t%d,\t" % (r, result_dic[r]))
+            f.write("%f,\t%f\n" % (100.0 * result_score[r], 100.0 * result_score[result_dic[r]]))
 
     ''' Random '''
     rand_avg_list = []
@@ -280,6 +313,28 @@ def main(filename, op1=0, op2=0, op3=0):
 
     print "random experiment: %d times" % num_rand
     print_result(rand_avg_list, 100.0)
+
+    ''' Random - sleep time'''
+    pre_list = []
+    post_list = []
+    for n, p in person_dic.items():
+        if p.sleep_time in (1,2,3,4,5):
+            pre_list.append(n)
+        else:
+            post_list.append(n)
+
+    rand_avg_list_s = []
+    num_rand_s = 1000
+    for i in range(num_rand_s):
+        random_dic_s = random_matching_sleep(person_dic, pre_list, post_list)
+        random_sum_s = 0.0
+        for r in random_dic_s:
+            random_sum_s += score_compute(person_dic[r], person_dic[random_dic_s[r]])
+        rand_avg_s = random_sum_s / len(person_dic)
+        rand_avg_list_s.append(rand_avg_s)
+
+    print "(SLEEP)random experiment: %d times" % num_rand_s
+    print_result(rand_avg_list_s, 100.0)
 
 def print_result(arr, m):
     score_avg = numpy.mean(arr)

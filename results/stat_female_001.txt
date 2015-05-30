@@ -1,0 +1,18 @@
+120.0
+avg: 86.622727
+std: 15.666005
+max: 100.000000
+min: 13.200000
+
+random experiment: 1000 times
+avg: 59.424980
+std: 1.436678
+max: 63.914394
+min: 54.570455
+
+(SLEEP)random experiment: 1000 times
+avg: 63.030480
+std: 1.362595
+max: 67.021970
+min: 58.056061
+
