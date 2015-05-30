@@ -3,6 +3,7 @@ import operator
 import random 
 import numpy
 import math
+import copy
 
 class Person():
     
@@ -179,24 +180,18 @@ def sum_score(person_dic, pid):
 
 def smp_matching(person_dic_arg):
     score_sum = 0
-    person_dic = dict(person_dic_arg)
+    person_dic = copy.deepcopy(person_dic_arg)
     result_dic = {}
 
-    random_indices = [random.randint(0, len(person_dic) / 2) for _ in range(10)]
-
-    i = 0
     while person_dic:
-        if i in random_indices:
-            #TODO
-            #FIXME
-            n = max(person_dic, key=lambda pid: sum_score(person_dic, pid))
-        else:
-            n = max(person_dic, key=lambda pid: sum_score(person_dic, pid))
+        n = max(person_dic, key=lambda pid: sum_score(person_dic, pid))
 
         target_n = max(person_dic[n].score_dic.iterkeys(), key=lambda k: person_dic[n].score_dic[k])
         result_dic[n] = target_n
         result_dic[target_n] = n
+        print "%d %d" % (n, target_n)
         score_sum += score_compute(person_dic[n], person_dic[target_n])
+        score_sum += score_compute(person_dic[target_n], person_dic[n])
 
         for p in person_dic:
             if n in person_dic[p].score_dic.keys():
@@ -206,8 +201,6 @@ def smp_matching(person_dic_arg):
 
         del person_dic[n]
         del person_dic[target_n]
-
-        i += 1
 
     return score_sum, result_dic
 
@@ -263,12 +256,28 @@ def main(filename):
     #print result_dic
     print "sum : %f\n" % score_avg
 
-    for r in result_dic:
-        print str(r) + '\t' + str(result_dic[r]) + '\t' + str(score_compute(person_dic[r], person_dic[result_dic[r]], True))
+#    for r in result_dic:
+#        print str(r) + '\t' + str(result_dic[r]) + '\t' + str(score_compute(person_dic[r], person_dic[result_dic[r]]))
+
+def print_score(filename):
+    pd = insert_data(filename)
+
+    while True:
+        aa = raw_input()
+        if 'q' in aa:
+            break
+        b = aa.split(' ')
+        i = int(b[0])
+        j = int(b[1])
+        print score_compute(pd[i], pd[j])
+
 
 if __name__ == '__main__':
     filename = "male.csv"
-    if len(sys.argv) >= 2:
+    if len(sys.argv) >= 2 and sys.argv[1] != 'aaa':
         filename = sys.argv[1]
-    main(filename)
+    if len(sys.argv) >= 2 and sys.argv[1] == 'aaa':
+        print_score(filename)
+    else:
+        main(filename)
 
